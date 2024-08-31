@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Mail;
 using Microsoft.Data.Sqlite;
-namespace EmailLibrary
+namespace SuperMarketRepository.EmailLibrary
 {
     public class SQLiteMailMessageRepository : IMailMessageRepository
     {

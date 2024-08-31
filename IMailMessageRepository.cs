@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EmailLibrary
+namespace SuperMarketRepository.EmailLibrary
 {
     public interface IMailMessageRepository
     {

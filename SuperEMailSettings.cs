@@ -12,7 +12,7 @@ using System.Security.Authentication;
 using Hangfire;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-namespace EmailLibrary
+namespace SuperMarketRepository.EmailLibrary
 {
     public class SuperEMailSettings
     {
