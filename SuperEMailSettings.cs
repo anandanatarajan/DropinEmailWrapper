@@ -56,8 +56,8 @@ namespace SuperMarketRepository.EmailLibrary
         public string ResponseMessage {  get; set; }
 
         public int MaxRetries { get; set; }
+        public string FromAlias { get; set; } = "";
 
-        
 
     }
 
@@ -281,7 +281,7 @@ namespace SuperMarketRepository.EmailLibrary
                 var tomails = mail.EmailTo.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                 
                 
-                message.From.Add(new MailboxAddress("", mail.EmailFrom));
+                message.From.Add(new MailboxAddress(mail.FromAlias, mail.EmailFrom));
                 
                 //message.To.Add(new MailboxAddress("", mail.EmailTo));
                 var ToEmail=tomails.Select(email =>  InternetAddress.Parse(email));
