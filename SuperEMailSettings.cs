@@ -78,6 +78,7 @@ namespace SuperMarketRepository.EmailLibrary
         private readonly IBackgroundJobClient _backgroundJobClient;
         public event EventHandler<MailMessageDetails> MessageReceived;
         private IMailMessageRepository dbrepo;
+        private string emailfrom {  get; set; }
         private string dbpath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory , "supermailstore.db");
         public virtual void OnMessageReceived(MailMessageDetails msg)
         {
@@ -103,6 +104,10 @@ namespace SuperMarketRepository.EmailLibrary
             {
                 dbrepo=smtpSettings.MailMessageRepository;
             }
+            if (smtpSettings.UseSmtpUserasFromMail == true)
+            {
+                this.emailfrom = smtpSettings.FromMail;
+            }
             //dbrepo = _dbrepo;
         }
 
@@ -122,10 +127,15 @@ namespace SuperMarketRepository.EmailLibrary
             {
                 dbrepo = smtpSettings.MailMessageRepository;
             }
+            if (smtpSettings.UseSmtpUserasFromMail == true)
+            {
+                this.emailfrom = smtpSettings.FromMail;
+            }
         }
 
         public void Insert(MailMessageDetails msg)
         {
+            msg.EmailFrom = this.emailfrom;
           
             dbrepo.InsertMailMessage(msg);
             if (msg._msgid > 0)
@@ -140,6 +150,7 @@ namespace SuperMarketRepository.EmailLibrary
 
         public void Update(MailMessageDetails msg)
         {
+            msg.EmailFrom = this.emailfrom;
           int ret=  dbrepo.UpdateMailMessage(msg);
             if (ret > 0)
             {
