@@ -136,7 +136,12 @@ namespace SuperMarketRepository.EmailLibrary
         public void Insert(MailMessageDetails msg)
         {
             msg.EmailFrom = this.emailfrom;
-          
+          if (!EmailValidator.ValidateMessage(msg))
+            {
+                msg.ResponseMessage = "Invalid Message format";
+                OnMessageReceived(msg);
+                return;
+            }
             dbrepo.InsertMailMessage(msg);
             if (msg._msgid > 0)
             {
@@ -261,7 +266,7 @@ namespace SuperMarketRepository.EmailLibrary
         public async Task SendMailAsync(MailMessageDetails mail)
         {
             
-            if (!validate(mail))
+            if (!EmailValidator.ValidateMessage(mail))
             {
                 string responsemsg = "Validation Failed Please check From,To mail address, body and subject.";
                 LogMail.LogMessage(responsemsg);
@@ -386,41 +391,7 @@ namespace SuperMarketRepository.EmailLibrary
 
 
 
-        private bool validate(MailMessageDetails msg)
-        {
-
-            if (msg == null)
-            {
-                return false;
-            }
-
-            if(!EmailValidator.ValidateEmailAddresses(msg.EmailFrom))
-                { return false; }
-            if(!EmailValidator.ValidateEmailAddresses(msg.EmailTo))
-                { return false; }
-            if (!string.IsNullOrWhiteSpace(msg.EmailCC)) { 
-            
-                if (!EmailValidator.ValidateEmailAddresses(msg.EmailCC))
-                    { return false; }
-            }
-            //if (! MailboxAddress.TryParse(msg.EmailFrom, out _)) 
-            //    return false;
-
-            //if (!MailboxAddress.TryParse(msg.EmailTo, out _))
-            //    return false;
-
-            if (string.IsNullOrWhiteSpace(msg.EmailBody)) 
-                return false;
-            if (string.IsNullOrWhiteSpace(msg.EmailSubject))
-                return false;
-
-            
-
-            return true;
-
-
-
-        }
+       
 
 
 
@@ -479,6 +450,34 @@ namespace SuperMarketRepository.EmailLibrary
 
 public class EmailValidator
     {
+        public static bool ValidateMessage(MailMessageDetails msg)
+        {
+            if (msg == null)
+            {
+                return false;
+            }
+
+            if (!EmailValidator.ValidateEmailAddresses(msg.EmailFrom))
+            { return false; }
+            if (!EmailValidator.ValidateEmailAddresses(msg.EmailTo))
+            { return false; }
+            if (!string.IsNullOrWhiteSpace(msg.EmailCC))
+            {
+
+                if (!EmailValidator.ValidateEmailAddresses(msg.EmailCC))
+                { return false; }
+            }
+        
+
+            if (string.IsNullOrWhiteSpace(msg.EmailBody))
+                return false;
+            if (string.IsNullOrWhiteSpace(msg.EmailSubject))
+                return false;
+
+
+
+            return true;
+        }
         public static bool ValidateEmailAddresses(string emailAddresses)
         {
             if (string.IsNullOrWhiteSpace(emailAddresses))

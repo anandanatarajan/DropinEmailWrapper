@@ -25,17 +25,17 @@ namespace SuperMarketRepository.EmailLibrary
                     _msgid INTEGER PRIMARY KEY ,
                     EmailFrom TEXT,
                     EmailTo TEXT,
-                    EmailCC TEXT,
-                    EmailBCC TEXT,
-                    EmailSubject TEXT,
+                    EmailCC TEXT NULL,
+                    EmailBCC TEXT NULL,
+                    EmailSubject TEXT ,
                     EmailBody TEXT,
-                    MessageIsHTML INTEGER,
-                    AttachFilePath TEXT,
+                    MessageIsHTML INTEGER NULL,
+                    AttachFilePath TEXT NULL,
                     State INTEGER,
                     Retries INTEGER,
-                    CreatedDate TEXT,
-                    LastUpdatedDate TEXT,
-                    ResponseMessage TEXT,
+                    CreatedDate TEXT NULL,
+                    LastUpdatedDate TEXT NULL,
+                    ResponseMessage TEXT NULL,
                     MaxRetries INTERGER
                 )";
                 command.ExecuteNonQuery();
@@ -78,7 +78,7 @@ namespace SuperMarketRepository.EmailLibrary
                     command.Parameters.AddWithValue("@msgid", id);
                     command.Parameters.AddWithValue("@EmailFrom", message.EmailFrom);
                     command.Parameters.AddWithValue("@EmailTo", message.EmailTo);
-                    command.Parameters.AddWithValue("@EmailCC", message.EmailCC);
+                    command.Parameters.AddWithValue("@EmailCC", message.EmailCC ?? "");
                     command.Parameters.AddWithValue("@EmailBCC", message.EmailBCC ?? "");
                     command.Parameters.AddWithValue("@EmailSubject", message.EmailSubject);
                     command.Parameters.AddWithValue("@EmailBody", message.EmailBody);
@@ -86,8 +86,8 @@ namespace SuperMarketRepository.EmailLibrary
                     command.Parameters.AddWithValue("@AttachFilePath", message.AttachFilePath ?? "");
                     command.Parameters.AddWithValue("@State", (int)message.State);
                     command.Parameters.AddWithValue("@Retries", message.Retries);
-                    command.Parameters.AddWithValue("@CreatedDate", DateTime.UtcNow.ToString("o"));
-                    command.Parameters.AddWithValue("@LastUpdatedDate", DateTime.UtcNow.ToString("o"));
+                    command.Parameters.AddWithValue("@CreatedDate", DateTime.Now.ToString("o"));
+                    command.Parameters.AddWithValue("@LastUpdatedDate", DateTime.Now.ToString("o"));
                     command.Parameters.AddWithValue("@ResponseMessage", message.ResponseMessage ?? "");
                     command.Parameters.AddWithValue("@MaxRetries", message.MaxRetries);
                     try

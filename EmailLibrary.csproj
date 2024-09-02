@@ -12,9 +12,9 @@
     <PackageTags>mailkit;hangfire;supermarketrepo;</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.1.1</FileVersion>
-    <Version>1.0.1</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.1.1</FileVersion>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,6 +24,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn>1701;1702;ClassDocumentationHeader;PropertyDocumentationHeader;ConstructorDocumentationHeader;MethodDocumentationHeader;</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="mail.conf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="mail.conf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Hangfire.NetCore" Version="1.8.14" />
