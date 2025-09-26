@@ -2,6 +2,9 @@
 
 namespace SuperMarketRepository.EmailLibrary
 {
+    /// <summary>
+    /// Mail Message Repository Interface
+    /// </summary>
     public interface IMailMessageRepository
     {
         int DeleteMailMessage();

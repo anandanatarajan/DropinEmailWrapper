@@ -9,8 +9,6 @@ using MailKit.Net.Smtp;
 using System.Net.Mail;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 using System.Security.Authentication;
-using Hangfire;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 namespace SuperMarketRepository.EmailLibrary
 {
@@ -37,30 +35,36 @@ namespace SuperMarketRepository.EmailLibrary
        
         public string EmailFrom { get; set; }
         public string EmailTo { get; set; }
+#nullable enable
+        public string? EmailCC { get; set; }
+        public string? EmailBCC { get; set; }
 
-        public string EmailCC { get; set; }
-        public string EmailBCC { get; set; }
-        public string EmailSubject { get; set; }
+        public   string EmailSubject { get; set; }
 
         public string EmailBody { get; set; }
         public bool MessageIsHTML { get; set; } = false;
 
-        public string AttachFilePath { get; set; }
+        public string? AttachFilePath { get; set; }
 
         public MailMessageStateEnum State { get;  set; }
         public int Retries { get; set; } = 0;
 
-        public string CreatedDate { get; set; }
-        public string LastUpdatedDate { get; set; }
+        public string CreatedDate { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        public string LastUpdatedDate { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-        public string ResponseMessage {  get; set; }
+        public string? ResponseMessage {  get; set; }
 
-        public int MaxRetries { get; set; }
+        public int MaxRetries { get; set; } = 2;
         public string FromAlias { get; set; } = "";
 
 
     }
-
+    /// <summary>
+    /// Represents the possible states of a mail message during its lifecycle.
+    /// </summary>
+    /// <remarks>This enumeration defines the various states a mail message can be in, such as being queued
+    /// for sending,  successfully sent, or encountering a failure. It can be used to track and manage the status of
+    /// email operations.</remarks>
    
     public enum MailMessageStateEnum
     {
@@ -69,169 +73,6 @@ namespace SuperMarketRepository.EmailLibrary
         Failed,
         Retring,
         Sending
-    }
-    
-    public class MailDatastoreOperations : IDisposable
-    {
-        
-        private readonly SuperEMailSettings smtpSettings;
-        private readonly IBackgroundJobClient _backgroundJobClient;
-        public event EventHandler<MailMessageDetails> MessageReceived;
-        private IMailMessageRepository dbrepo;
-        private string emailfrom {  get; set; }
-        private string dbpath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory , "supermailstore.db");
-        public virtual void OnMessageReceived(MailMessageDetails msg)
-        {
-            MessageReceived?.Invoke(this, msg);
-        }
-        public static MailDatastoreOperations NewDataStore(SuperEMailSettings eMailSettings)
-        {
-            return new MailDatastoreOperations(eMailSettings);
-        }
-        public MailDatastoreOperations()
-        {
-            dbrepo = new SQLiteMailMessageRepository(dbpath);
-        }
-        public MailDatastoreOperations(SuperEMailSettings eMailSettings, IBackgroundJobClient backgroundJobClient)
-        {
-            smtpSettings = eMailSettings;
-            _backgroundJobClient = backgroundJobClient;
-            if (smtpSettings.MailMessageRepository == null)
-            {
-                dbrepo = new SQLiteMailMessageRepository($"Data Source={dbpath}");
-            }
-            else
-            {
-                dbrepo=smtpSettings.MailMessageRepository;
-            }
-            if (smtpSettings.UseSmtpUserasFromMail == true)
-            {
-                this.emailfrom = smtpSettings.FromMail;
-            }
-            //dbrepo = _dbrepo;
-        }
-
-        public MailDatastoreOperations(IBackgroundJobClient backgroundJobClient)
-        {
-            _backgroundJobClient = backgroundJobClient;
-        }
-        public MailDatastoreOperations(SuperEMailSettings settings )
-        {
-
-            smtpSettings = settings;
-            if (smtpSettings.MailMessageRepository == null)
-            {
-                dbrepo = new SQLiteMailMessageRepository($"Data Source={dbpath}");
-            }
-            else
-            {
-                dbrepo = smtpSettings.MailMessageRepository;
-            }
-            if (smtpSettings.UseSmtpUserasFromMail == true)
-            {
-                this.emailfrom = smtpSettings.FromMail;
-            }
-        }
-
-        public void Insert(MailMessageDetails msg)
-        {
-            msg.EmailFrom = this.emailfrom;
-          if (!EmailValidator.ValidateMessage(msg))
-            {
-                msg.ResponseMessage = "Invalid Message format";
-                OnMessageReceived(msg);
-                return;
-            }
-            dbrepo.InsertMailMessage(msg);
-            if (msg._msgid > 0)
-            {
-                OnMessageReceived(msg);
-                _backgroundJobClient.Enqueue(() => Mail.NewMail(smtpSettings).SendMailAsync(msg));
-            }
-         
-        }
-
-        
-
-        public void Update(MailMessageDetails msg)
-        {
-            msg.EmailFrom = this.emailfrom;
-          int ret=  dbrepo.UpdateMailMessage(msg);
-            if (ret > 0)
-            {
-                OnMessageReceived(msg);
-                LogMail.LogMessage($" Updated with status {msg.ResponseMessage}");
-            }
-
-         
-        }
-
-        public int Purge()
-        {
-
-            return dbrepo.DeleteMailMessage();
-
-        }
-
-        public string SelectAll()
-        {
-            var ret= dbrepo.GetMailMessages();
-            return JsonConvert.SerializeObject(ret);
-
-        }
-
-        
-
-        public async Task CheckUnsentEmails()
-        {
-            var lstmails= dbrepo.GetMailMessages().Where(x => x.State != MailMessageStateEnum.Sent && x.Retries>0);
-            int count = 0;
-            foreach (var mail in lstmails) { 
-                if (mail.MaxRetries > count)
-                {
-                    count++;
-                    mail.Retries =count;
-                    await Mail.NewMail(smtpSettings).SendMailAsync(mail);
-                    
-                    
-                }
-                
-                
-            }
-
-        }
-
-
-        private bool disposedValue;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
-            }
-        }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~DatastoreOperations()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        void IDisposable.Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
     }
 
         

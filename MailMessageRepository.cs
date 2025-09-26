@@ -54,9 +54,9 @@ namespace SuperMarketRepository.EmailLibrary
                     return Convert.ToInt32(obj);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                LogMail.LogMessage($"Error Occured while getting AutoIncremented Value {ex}" );
                 throw;
             }
         }
